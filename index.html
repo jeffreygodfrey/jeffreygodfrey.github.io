@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>Insight Forge</title>
     <!-- TODO: placeholder for favicon -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <!-- TODO: placeholder for fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600;1,400;1,600&family=Noto+Sans+Mono:wght@400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <meta name="color-scheme" content="dark">
 </head>
@@ -19,12 +20,21 @@
   </header>
 
   <!-- Navigation -->
-  <nav>
-    placeholder for nav
+  <button id="nav-toggle" aria-expanded="false" aria-controls="site-nav">☰</button>
+  <div id="nav-backdrop"></div>
+  <nav id="site-nav" aria-hidden="true">
+    <div id="nav-location"></div>
+    <ul>
+      <li><a href="#home">Home</a></li>
+      <li>Nav item 2</li>
+      <li>Nav item 3</li>
+    </ul>
   </nav>
 
   <main>
-    placeholder for main
+    <section id="home">
+      Placeholder
+    </section>
   </main>
 
   <!-- Footer -->

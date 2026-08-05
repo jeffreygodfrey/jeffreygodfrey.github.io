@@ -1,0 +1,97 @@
+:root {
+  color-scheme: dark;
+  --font-body: "Noto Sans", sans-serif;
+  --font-code: "Noto Sans Mono", monospace;
+  --base:          hsl(140, 60%, 50%);
+  --base-L:        50%;
+  --text-L:        92%;
+  --text-soft-L:   60%;
+  --hover-rule-L:  30%;
+  --bg-toc-L:      22%;
+  --bg-L:          15%;
+
+/* Calculated Colors */
+  --accent:     oklch(from var(--base) var(--base-L)       c h);
+  --accent2:    oklch(from var(--base) var(--base-L)       c calc(h + 144));
+  --accent3:    oklch(from var(--base) var(--base-L)       c calc(h - 144));
+  --text:       oklch(from var(--base) var(--text-L)       calc(c * 0.05) h);
+  --text-muted: oklch(from var(--base) var(--text-soft-L)  calc(c * 0.05) h);
+  --hover-rule: oklch(from var(--base) var(--hover-rule-L) calc(c * 0.05) h);
+  --bg-toc:     oklch(from var(--base) var(--bg-toc-L)     calc(c * 0.05) h);
+  --bg:         oklch(from var(--base) var(--bg-L)         calc(c * 0.05) h);
+}
+
+#site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease-out;
+  z-index: 20;
+}
+
+[data-nav-open="true"] #site-nav {
+  transform: translateX(0);
+}
+
+#nav-toggle {
+  position: relative;
+  z-index: 30;
+}
+
+#nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+  z-index: 10;
+}
+
+[data-nav-open="true"] #nav-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  #site-nav {
+    position: static;
+    transform: none;
+    transition: none;
+  }
+
+  #nav-toggle,
+  #nav-backdrop {
+    display: none;
+  }
+}
+
+nav {
+  position: sticky;
+  top: var(--header-height, 0px);
+  z-index: 10;
+  animation: fadeUp 0.9s 0.1s ease both;
+  background: var(--bg);
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.8rem;
+}
+
+nav a {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+nav a:hover { color: var(--accent2); }
+
