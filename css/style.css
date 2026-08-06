@@ -70,7 +70,7 @@
 
 nav {
   position: sticky;
-  top: var(--header-height, 0px);
+  top: 0;
   z-index: 10;
   animation: fadeUp 0.9s 0.1s ease both;
   background: var(--bg);
@@ -79,8 +79,8 @@ nav {
 nav ul {
   list-style: none;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.2rem 1.8rem;
+  flex-direction: column;
+  gap: 1.8rem;
 }
 
 nav a {
