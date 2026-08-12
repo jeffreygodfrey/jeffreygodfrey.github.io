@@ -13,10 +13,12 @@ const ACRONYMS = {
 
 let manifest = [];
 
+// Fetches articles/manifest.json which contains all the markdown paths minus the .md extension and the article title, then fetch and parse each markdown file to build the nav and breadcrumb.
+// To add a new article, save a *.md file in the appropriate articles folder or sub-folder and add the pathname to manifest.json in the articles folder.
 fetch('articles/manifest.json')
   .then(response => response.json())
-  .then(entries => {
-    manifest = entries;
+  .then(articles => {
+    manifest = articles;
     const redirectPath = sessionStorage.getItem('redirectPath');
     if (redirectPath) {
       sessionStorage.removeItem('redirectPath');
@@ -27,6 +29,52 @@ fetch('articles/manifest.json')
   .catch(err => {
     console.error('Could not load manifest.json:', err);
   });
+
+function loadArticle(path) {
+  return fetch(`/${path}.md`)
+    .then(response => response.text())
+    .then(markdown => parseArticle (markdown, path));
+}
+
+function parseArticle(markdown, path) {
+  const lines = markdown.split('\n');
+
+  let title = '';
+  let bodyStartIndex = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (line.startsWith('# ')) {
+      title = line.replace('# ','');
+      bodyStartIndex = i + 1;
+    }
+  }
+
+  const bodyLines = lines.slice(bodyStartIndex);
+  const bodyMarkdown = bodyLines.join('\n');
+
+  return {
+    title: title,
+    bodyHTML: markdownToHTML(bodyMarkdown)
+  };
+}
+
+function markdownToHTML(markdown) {
+  const paragraphs = markdown
+    .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+
+  return paragraphs.map(p => {
+    const HTML = p
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+
+    return `<p>${HTML}</p>`;
+  }).join('');
+}
 
 function setNavOpen(open) {
   const nav = document.getElementById('site-nav');
@@ -76,8 +124,8 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-function deriveBreadcrumb(entry) {
-  const segments = entry.path.split('/');
+function deriveBreadcrumb(article) {
+  const segments = article.path.split('/');
   const folderSegments = segments.slice(0, -1);
 
   const folderCrumbs = folderSegments.map((segment, i) => ({
@@ -85,7 +133,7 @@ function deriveBreadcrumb(entry) {
     href: folderSegments.slice(0, i + 1).join('/')
   }));
 
-  return [...folderCrumbs, {label: entry.title, href: null }];
+  return folderCrumbs;
 }
 
 function titleCaseSegment(segment) {
@@ -102,18 +150,30 @@ function capitalize(word) {
 function renderBreadcrumbs(crumbs) {
   if (crumbs.length === 0) return '';
 
-  const items = crumbs.map((crumb, i) => {
-    const isLast = i === crumbs.length - 1;
-    return isLast
-      // Replace these lines with the following to make the last breadcrumb a link instead of plain text once there is a page for it.
-      // ? `<li aria-current="page">${crumb.label}</li>`
-      // :`<li><a href="${crumb.href}">${crumb.label}</a></li>`;
-      ? `<li aria-current="page">${crumb.label}</li>`
-      : `<li>${crumb.label}</li>`;
+  const items = crumbs.map((crumb) => {
+    return `<li>${crumb.label}</li>`;
   }).join('');
 
   return `<nav aria-label="Breadcrumbs"><ol>${items}</ol></nav>`;
 }
+
+// TODO: once folder-listing pages exist, restore per-crumb links and mark
+// whichever crumb matches the current page with aria-current="page".
+// Swap the block above for this version:
+//
+// function renderBreadcrumbs(crumbs) {
+//   if (crumbs.length === 0) return '';
+//
+//   const items = crumbs.map((crumb, i) => {
+//     const isCurrentPage = crumb.href === currentPath; // define however "current page" is determined at that point
+//     return isCurrentPage
+//       ? `<li aria-current="page">${crumb.label}</li>`
+//       : `<li><a href="${crumb.href}">${crumb.label}</a></li>`;
+//   }).join('');
+//
+//   return `<nav aria-label="Breadcrumbs"><ol>${items}</ol></nav>`;
+// }
+
 
 function normalizePath(path) {
   if (!path) return '';
@@ -128,23 +188,32 @@ function normalizePath(path) {
   return path;
 }
 
-function renderRoute(path) {
+async function renderRoute(path) {
   const normalizedPath = normalizePath(path);
 
   if (normalizedPath === '') {
     document.getElementById('nav-location').innerHTML = '';
+    document.getElementById('article-content').innerHTML = '';
     return;
   }
 
-  const entry = manifest.find(e => e.path === normalizedPath);
+  const article = manifest.find(e => e.path === normalizedPath);
 
-  if (entry !== undefined) {
-    const crumbs = deriveBreadcrumb(entry);
+  if (article !== undefined) {
+    const crumbs = deriveBreadcrumb(article);
     const breadcrumbHTML = renderBreadcrumbs(crumbs);
     document.getElementById('nav-location').innerHTML = breadcrumbHTML;
+    try {
+      const loadedArticle = await loadArticle(article.path);
+      document.getElementById('article-content').innerHTML = `<h1>${loadedArticle.title}</h1>` + loadedArticle.bodyHTML;
+
+    } catch(err) {
+      console.error('Could not load article:', err);
+      document.getElementById('article-content').innerHTML = `<p>Uh oh, something happened when loading this article: ${normalizedPath}<br>Return <a href="/">home</a>?</p>`;
+    }
   } else {
     document.getElementById('nav-location').innerHTML = '';
-    document.getElementById('article-content').innerHTML = `<p>Path not found: ${normalizedPath}<br>Return <a href="#home">home</a>?</p>`;
+    document.getElementById('article-content').innerHTML = `<p>Path not found: ${normalizedPath}<br>Return <a href="/">home</a>?</p>`;
   }
 }
 

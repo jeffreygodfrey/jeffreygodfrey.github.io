@@ -31,7 +31,6 @@
   position: fixed;
   top: var(--header-height);
   left: 0;
-  width: 100%;
   transform: translateY(-100%);
   transition: transform 0.25s ease-out;
   overflow-y: auto;
@@ -179,6 +178,7 @@ body {
   #site-nav {
     display: flex;
     top: var(--header-height);
+    width: var(--nav-width);
     height: calc(100vh - var(--header-height));
     transform: translateX(0);
   }
