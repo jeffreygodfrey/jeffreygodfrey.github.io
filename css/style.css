@@ -70,9 +70,9 @@
   gap: 0.5rem;
 }
 
-#nav-location li:not(:first-child)::before {
+#nav-location li::after {
   content: "/";
-  margin-right: 0.5rem;
+  margin-left: 0.5rem;
   color: var(--text-muted);
 }
 

@@ -36,26 +36,49 @@ function loadArticle(path) {
     .then(markdown => parseArticle (markdown, path));
 }
 
-function parseArticle(markdown, path) {
-  const lines = markdown.split('\n');
+function parseFrontmatter(lines) {
+  const defaults  = { title: '', date: '', tags: [] };
 
-  let title = '';
-  let bodyStartIndex = 0;
+  if (lines[0].trim() !== '---') {
+    return { frontmatter: { ...defaults }, bodyLines: lines };
+  }
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-
-    if (line.startsWith('# ')) {
-      title = line.replace('# ','');
-      bodyStartIndex = i + 1;
+  let closingIndex = -1;
+  for (let i = 1; i < lines.length; i++) {
+    if (lines[i].trim() === '---') {
+      closingIndex = i;
+      break;
     }
   }
 
-  const bodyLines = lines.slice(bodyStartIndex);
+  if (closingIndex === -1) {
+    return { frontmatter: { ...defaults }, bodyLines: lines };
+  }
+
+  const frontmatterLines = lines.slice(1, closingIndex);
+  const bodyLines = lines.slice(closingIndex + 1);
+
+  const frontmatter = { ...defaults };
+  for (const line of frontmatterLines) {
+    const colonIndex = line.indexOf(':');
+    if (colonIndex === -1) continue;
+
+    const key = line.slice(0, colonIndex).trim();
+    const value = line.slice(colonIndex + 1).trim();
+    frontmatter[key] = value;
+  }
+
+  return { frontmatter, bodyLines };
+}
+
+function parseArticle(markdown, path) {
+  const lines = markdown.split('\n');
+
+  const { frontmatter, bodyLines } = parseFrontmatter(lines);
   const bodyMarkdown = bodyLines.join('\n');
 
   return {
-    title: title,
+    frontmatter: frontmatter,
     bodyHTML: markdownToHTML(bodyMarkdown)
   };
 }
@@ -194,6 +217,7 @@ async function renderRoute(path) {
   if (normalizedPath === '') {
     document.getElementById('nav-location').innerHTML = '';
     document.getElementById('article-content').innerHTML = '';
+    document.getElementById('home').hidden = false;
     return;
   }
 
@@ -203,9 +227,11 @@ async function renderRoute(path) {
     const crumbs = deriveBreadcrumb(article);
     const breadcrumbHTML = renderBreadcrumbs(crumbs);
     document.getElementById('nav-location').innerHTML = breadcrumbHTML;
+    document.getElementById('home').hidden = true;
     try {
       const loadedArticle = await loadArticle(article.path);
-      document.getElementById('article-content').innerHTML = `<h1>${loadedArticle.title}</h1>` + loadedArticle.bodyHTML;
+      const title = loadedArticle.frontmatter.title || article.title;
+      document.getElementById('article-content').innerHTML = `<h1>${title}</h1>` + loadedArticle.bodyHTML;
 
     } catch(err) {
       console.error('Could not load article:', err);
@@ -214,6 +240,7 @@ async function renderRoute(path) {
   } else {
     document.getElementById('nav-location').innerHTML = '';
     document.getElementById('article-content').innerHTML = `<p>Path not found: ${normalizedPath}<br>Return <a href="/">home</a>?</p>`;
+    document.getElementById('home').hidden = true;
   }
 }
 
