@@ -12,13 +12,16 @@ const ACRONYMS = {
 };
 
 let manifest = [];
+let currentPath = '';
+const expandedCategories = new Set();
 
 // Fetches articles/manifest.json which contains all the markdown paths minus the .md extension and the article title, then fetch and parse each markdown file to build the nav and breadcrumb.
 // To add a new article, save a *.md file in the appropriate articles folder or sub-folder and add the pathname to manifest.json in the articles folder.
-fetch('articles/manifest.json')
+const manifestReady = fetch('articles/manifest.json')
   .then(response => response.json())
   .then(articles => {
     manifest = articles;
+    console.log(groupArticlesByCategory(manifest))
     const redirectPath = sessionStorage.getItem('redirectPath');
     if (redirectPath) {
       sessionStorage.removeItem('redirectPath');
@@ -28,6 +31,7 @@ fetch('articles/manifest.json')
   })
   .catch(err => {
     console.error('Could not load manifest.json:', err);
+    throw err;
   });
 
 function loadArticle(path) {
@@ -166,6 +170,68 @@ function titleCaseSegment(segment) {
     .join(' ');
 }
 
+function groupArticlesByCategory(manifest) {
+  const groups = [];
+
+  for (const article of manifest) {
+    const [, categorySegment] = article.path.split('/');
+
+    let group = groups.find(g => g.category === categorySegment);
+    if (!group) {
+      group = {
+        category: categorySegment,
+        label: titleCaseSegment(categorySegment),
+        articles: []
+      };
+      groups.push(group);
+    }
+
+    group.articles.push(article);
+  }
+
+  groups.sort((a, b) => a.label.localeCompare(b.label));
+  groups.forEach(g => g.articles.sort((a, b) => a.title.localeCompare(b.title)));
+
+  return groups;
+}
+
+function renderNav() {
+  const groups = groupArticlesByCategory(manifest);
+
+  const categoryItems = groups.map(group => {
+    const isExpanded = expandedCategories.has(group.category);
+    const icon = isExpanded ? '-' : '+';
+
+    const articleItems = group.articles.map(article => {
+      const isCurrent = article.path === currentPath;
+      const currentAttr = isCurrent ? ' aria-current="page"' : '';
+      return `<li><a href="/${article.path}"${currentAttr}>${article.title}</a></li>`;
+    }).join('');
+
+    const articleList = isExpanded
+      ? `<ul class="nav-articles">${articleItems}</ul>`
+      : '';
+
+    return `
+      <li>
+        <button class="nav-category" aria-expanded="${isExpanded}" data-category="${group.category}">
+          ${group.label} <span class="toggle-icon">${icon}</span>
+        </button>
+        ${articleList}
+      </li>
+    `;
+  }).join('');
+
+  const homeAttr = currentPath === '' ? ' aria-current="page"' : '';
+
+  document.querySelector('.nav').innerHTML = `
+    <li><a href="/"${homeAttr}>Home</a></li>
+    <li><a hfer="/about">About</a></li>
+    <li class="nav-section-header">Articles</li>
+    ${categoryItems}
+  `;
+}
+
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
@@ -212,6 +278,15 @@ function normalizePath(path) {
 }
 
 async function renderRoute(path) {
+  try {
+    await manifestReady;
+  } catch (err) {
+    console.error('Could not load manifest.json:', err);
+    document.getElementById('article-content').innerHTML = `<p>Uh oh, something went wrong loading the site navigation.<br>Return <a href="/">home</a>?</p>`;
+    document.getElementById('home').hidden = true;
+    return;
+  }
+
   const normalizedPath = normalizePath(path);
 
   if (normalizedPath === '') {
