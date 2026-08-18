@@ -21,6 +21,7 @@ const manifestReady = fetch('articles/manifest.json')
   .then(response => response.json())
   .then(articles => {
     manifest = articles;
+    renderNav();
     console.log(groupArticlesByCategory(manifest))
     const redirectPath = sessionStorage.getItem('redirectPath');
     if (redirectPath) {
@@ -145,6 +146,23 @@ document.getElementById('site-nav').addEventListener('click', (e) => {
   }
 });
 
+document.getElementById('site-nav').addEventListener('click', (e) => {
+  const btn = e.target.closest('.nav-category');
+  if (!btn) return;
+
+  const category = btn.dataset.category;
+  const isExpanded = expandedCategories.has(category);
+
+  if (isExpanded) {
+    expandedCategories.delete(category);
+  } else {
+    expandedCategories.add(category);
+  }
+
+  renderNav();
+  document.querySelector(`[data-category="${category}"]`)?.focus();
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !desktopQuery.matches) {
     setNavOpen(false);
@@ -246,24 +264,6 @@ function renderBreadcrumbs(crumbs) {
   return `<nav aria-label="Breadcrumbs"><ol>${items}</ol></nav>`;
 }
 
-// TODO: once folder-listing pages exist, restore per-crumb links and mark
-// whichever crumb matches the current page with aria-current="page".
-// Swap the block above for this version:
-//
-// function renderBreadcrumbs(crumbs) {
-//   if (crumbs.length === 0) return '';
-//
-//   const items = crumbs.map((crumb, i) => {
-//     const isCurrentPage = crumb.href === currentPath; // define however "current page" is determined at that point
-//     return isCurrentPage
-//       ? `<li aria-current="page">${crumb.label}</li>`
-//       : `<li><a href="${crumb.href}">${crumb.label}</a></li>`;
-//   }).join('');
-//
-//   return `<nav aria-label="Breadcrumbs"><ol>${items}</ol></nav>`;
-// }
-
-
 function normalizePath(path) {
   if (!path) return '';
 
@@ -293,6 +293,10 @@ async function renderRoute(path) {
     document.getElementById('nav-location').innerHTML = '';
     document.getElementById('article-content').innerHTML = '';
     document.getElementById('home').hidden = false;
+    currentPath = '';
+    expandedCategories.clear();
+    renderNav();
+
     return;
   }
 
@@ -303,6 +307,11 @@ async function renderRoute(path) {
     const breadcrumbHTML = renderBreadcrumbs(crumbs);
     document.getElementById('nav-location').innerHTML = breadcrumbHTML;
     document.getElementById('home').hidden = true;
+    currentPath = normalizedPath;
+    const [, categorySegment] = article.path.split('/');
+    expandedCategories.add(categorySegment);
+    renderNav();
+
     try {
       const loadedArticle = await loadArticle(article.path);
       const title = loadedArticle.frontmatter.title || article.title;
