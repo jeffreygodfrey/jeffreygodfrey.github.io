@@ -233,7 +233,7 @@ function renderNav() {
     return `
       <li>
         <button class="nav-category" aria-expanded="${isExpanded}" data-category="${group.category}">
-          ${group.label} <span class="toggle-icon">${icon}</span>
+          <span class="toggle-icon">${icon}</span> ${group.label}
         </button>
         ${articleList}
       </li>
@@ -243,8 +243,8 @@ function renderNav() {
   const homeAttr = currentPath === '' ? ' aria-current="page"' : '';
 
   document.querySelector('.nav').innerHTML = `
-    <li><a href="/"${homeAttr}>Home</a></li>
-    <li><a hfer="/about">About</a></li>
+    <li><a class="nav-primary" href="/"${homeAttr}>Home</a></li>
+    <li><a class="nav-primary" href="/about">About</a></li>
     <li class="nav-section-header">Articles</li>
     ${categoryItems}
   `;
