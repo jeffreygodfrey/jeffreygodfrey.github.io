@@ -149,9 +149,14 @@ header {
 #nav-toggle {
   top: 0;
   left: 1rem;
+  padding: 1rem;
+  font-size: 1rem;
   height: var(--page-header-height);
   display: flex;
   align-items: center;
+  background: none;
+  border: none;
+  border-right: solid 1px var(--bg-toc);
 }
 
 #nav-backdrop {
@@ -212,16 +217,13 @@ header {
 }
 
 .article-content {
-  margin-top: 0;
+  margin-top: var(--page-header-height);
   margin-left: 0;
   padding: 1rem 2rem;
 }
 
 .breadcrumb-bar {
-  position: fixed;
-  top: var(--page-header-height);
-  left: 0;
-  padding: 0.5rem;
+  display: none;
 }
 
 /*@keyframes fadeUp {

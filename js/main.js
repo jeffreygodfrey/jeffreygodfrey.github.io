@@ -89,12 +89,84 @@ function parseArticle(markdown, path) {
 }
 
 function markdownToHTML(markdown) {
+  const codeBlocks = [];
+
+  const syntaxHighlight = (code, lang) => {
+    if (lang === 'js' || lang === 'javascript') {
+      return `<pre><code class="language-js">${highlightJS(escapeHTML(code))}</code></pre>`;
+    } else if (lang === 'html') {
+      return `<pre><code class="language-html">${highlightHTML(escapeHTML(code))}</code></pre>`;
+    } else if (lang === 'css') {
+      return `<pre><code class="language-css">${highlightCSS(escapeHTML(code))}</code></pre>`;
+    } else {
+      return `<pre><code>${escapeHTML(code)}</code></pre>`;
+    }
+  };
+
+  const escapeHTML = (str) => {
+    return str.replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+  };
+
+  const jsKeywords = [
+    'const', 'let', 'var', 'function', 'return', 'if', 'else',
+    'for', 'while', 'class', 'new', 'this', 'import', 'export',
+    'default', 'from', 'typeof', 'null', 'undefined', 'true', 'false'
+  ];
+
+  const jsCommentPattern = '(\\/\\/.*|\\/\\*[\\s\\S]*?\\*\\/)';
+  const jsStringPattern = '("(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')';
+  const jsKeywordPattern = `(\\b(?:${jsKeywords.join('|')})\\b)`;
+  const jsNumberPattern = '(\\b\\d+\\.?\\d*\\b)';
+
+  const jsTokenPattern = [jsCommentPattern, jsStringPattern, jsKeywordPattern, jsNumberPattern].join('|');
+  const jsTokenRegex = new RegExp(jsTokenPattern, 'g');
+
+  function highlightJS(code) {
+    return code.replace(jsTokenRegex, (match, comment, string, keyword, number) => {
+      if (comment) return `<span class="token-comment">${comment}</span>`;
+      if (string) return `<span class="token-string">${string}</span>`;
+      if (keyword) return `<span class="token-keyword">${keyword}</span>`;
+      if (number) return `<span class="token-number">${number}</span>`;
+      return match;
+    });
+  }
+
+  const cssCommentPattern = '(\\/\\*[\\s\\S]*?\\*\\/)';
+  const cssStringPattern = '("(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\]|\\\\.)*\')';
+  const colorFunctionPattern = '((?:oklch|oklab|hsl|hsla|rgb|rgba|lab|lch|color)\\((?:[^()]|\\([^()]*\\))*\\))';
+  const hexColorPattern = '(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8}))';
+  const importantPattern = '(!important)';
+  const cssNumberPattern = '(-?\\b\\d+\\.?\\d*(?:rem|em|ps|%|vh|vw|deg|s|ms)?\\b)';
+
+  const cssTokenPattern = [cssCommentPattern, cssStringPattern, colorFunctionPattern, hexColorPattern, importantPattern, cssNumberPattern].join('|');
+  const cssTokenRegex = new RegExp(cssTokenPattern, 'g');
+
+  function highlightCss(code) {
+    return code.replace(cssTokenRegex, (match, comment, string, colorFn, hex, important, number) => {
+      if (comment) return `<span class="token-comment">${comment}</span>`;
+      if (string) return `<span class="token-string">${string}</span>`;
+      if (colorFn) return `<span class="token-color"><span class="color-swatch" style="background-color: ${colorFn}"></span>${colorFn}</span>`;
+      if (hex) return `<span class="token-color"><span class="color-swatch" style="background-color: ${hex}"></span>${hex}</span>`;
+      if (important) return `<span class="token-keyword">${important}</span>`;
+      if (number) return `<span class="token-number">${number}</span>`;
+      return match;
+    });
+  }
+
+  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+  markdown = markdown.replace(codeBlockRegex, (match, lang, code) => {
+    codeBlocks.push(syntaxHighlight(code, lang));
+    return `\u0000CODE${codeBlocks.length - 1}\u0000`;
+  });
+
   const paragraphs = markdown
     .split(/\n\s*\n/)
     .map(p => p.trim())
     .filter(p => p.length > 0);
 
-  return paragraphs.map(p => {
+  const result = paragraphs.map(p => {
     const HTML = p
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
@@ -102,6 +174,8 @@ function markdownToHTML(markdown) {
 
     return `<p>${HTML}</p>`;
   }).join('');
+
+  return result.replace(/<p>\u0000CODE(\d+)\u0000<\/p>/g, (match, index) => codeBlocks[index]);
 }
 
 function setNavOpen(open) {
@@ -355,4 +429,3 @@ document.addEventListener('click', (e) => {
 window.addEventListener('popstate', () => {
   renderRoute(location.pathname);
 });
-
