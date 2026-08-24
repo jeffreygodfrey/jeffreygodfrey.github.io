@@ -64,7 +64,7 @@ header {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0 1 rem;
+  padding: 0 1rem;
   height: var(--page-header-height);
   background: var(--bg-header);
   z-index: 50;

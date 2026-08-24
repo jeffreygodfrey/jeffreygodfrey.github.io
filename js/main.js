@@ -11,6 +11,28 @@ const ACRONYMS = {
   xml: 'XML'
 };
 
+function applyTheme() {
+  const stored = localStorage.getItem('theme'); // 'light' | 'dark' | null
+
+  const resolved = stored === 'light' || stored === 'dark'
+    ? stored
+    : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+  document.documentElement.setAttribute('data-theme', resolved);
+}
+
+document.getElementById('theme-select').addEventListener('change', (e) => {
+  const choice = e.target.value; // 'light' | 'dark' | 'system'
+
+  if (choice === 'system') {
+    localStorage.removeItem('theme');
+  } else {
+    localStorage.setItem('theme', choice);
+  }
+
+  applyTheme();
+});
+
 let manifest = [];
 let currentPath = '';
 const expandedCategories = new Set();
@@ -38,6 +60,7 @@ const manifestReady = fetch('articles/manifest.json')
 function loadArticle(path) {
   return fetch(`/${path}.md`)
     .then(response => response.text())
+    .then(markdown => markdown.replace(/\r\n/g, '\n'))
     .then(markdown => parseArticle (markdown, path));
 }
 
@@ -143,7 +166,7 @@ function markdownToHTML(markdown) {
   const cssTokenPattern = [cssCommentPattern, cssStringPattern, colorFunctionPattern, hexColorPattern, importantPattern, cssNumberPattern].join('|');
   const cssTokenRegex = new RegExp(cssTokenPattern, 'g');
 
-  function highlightCss(code) {
+  function highlightCSS(code) {
     return code.replace(cssTokenRegex, (match, comment, string, colorFn, hex, important, number) => {
       if (comment) return `<span class="token-comment">${comment}</span>`;
       if (string) return `<span class="token-string">${string}</span>`;
@@ -152,6 +175,41 @@ function markdownToHTML(markdown) {
       if (important) return `<span class="token-keyword">${important}</span>`;
       if (number) return `<span class="token-number">${number}</span>`;
       return match;
+    });
+  }
+
+  const htmlCommentPattern = /<!--[\s\S]*?-->/g;
+  const tagPattern = /<\/?[a-zA-Z][^>]*>/g;
+  const attrPattern = /([a-zA-Z-]+)(=)("[^"]*"|'[^']*')/g;
+  const tagNamePattern = /^\/?([a-zA-Z][a-zA-Z0-9]*)/;
+
+  function highlightHTML(code) {
+    const escaped = escapeHTML(code);
+
+    const withComments = code.replace(htmlCommentPattern, (match) => {
+      return `<span class="token-comment">${match}</span>`
+    });
+
+    return withComments.replace(tagPattern, (fullTag) => {
+      const inner = fullTag
+        .replace(/^<\/?/, '')
+        .replace(/\/?>$/, '');
+
+      const nameMatch = inner.match(tagNamePattern);
+      const tagName = nameMatch ? nameMatch[1] : '';
+
+      const rest = inner.slice(nameMatch ? nameMatch[0].length : 0);
+
+      const highlightedRest = rest.replace(attrPattern, (match, name, eq, value) => {
+        return `<span class="token-attr-name">${name}</span>${eq}<span class="token-attr-value">${value}</span>`;
+      });
+
+      const isClosing = fullTag.startsWith('</');
+      const isSelfClosing = fullTag.endsWith('/>');
+      const slash = isClosing ? '/' : '';
+      const selfClose = isSelfClosing ? ' /' : '';
+
+      return `<span class="token-tag">&lt;${slash}${tagName}</span>${highlightedRest}<span class="token-tag">${selfClose}&gt;</span>`;
     });
   }
 

@@ -8,6 +8,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600;1,400;1,600&family=Noto+Sans+Mono:wght@400&display=swap" rel="stylesheet">
+    <script>
+      (function () {
+        const stored = localStorage.getItem('theme'); // 'light' | 'dark' | null
+
+        const resolved = stored === 'light' || stored === 'dark'
+          ? stored
+          : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+        document.documentElement.setAttribute('data-theme', resolved);
+      })();
+    </script>
     <link rel="stylesheet" href="css/style.css">
     <meta name="color-scheme" content="dark">
 </head>
@@ -29,6 +40,14 @@
     <div class="nav-bg"></div>
     <nav id="site-nav" aria-label="Site" aria-hidden="true">
       <ul class="nav"></ul>
+      <div class="theme-switch">
+        <label for="theme-select">Theme</label>
+        <select id="theme-select">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
     </nav>
 
     <main>
