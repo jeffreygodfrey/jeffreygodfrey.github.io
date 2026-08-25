@@ -21,6 +21,9 @@ function applyTheme() {
   document.documentElement.setAttribute('data-theme', resolved);
 }
 
+const themeSelect = document.getElementById('theme-select');
+themeSelect.value = localStorage.getItem('theme') ?? 'system';
+
 document.getElementById('theme-select').addEventListener('change', (e) => {
   const choice = e.target.value; // 'light' | 'dark' | 'system'
 
@@ -116,13 +119,13 @@ function markdownToHTML(markdown) {
 
   const syntaxHighlight = (code, lang) => {
     if (lang === 'js' || lang === 'javascript') {
-      return `<pre><code class="language-js">${highlightJS(escapeHTML(code))}</code></pre>`;
+      return `<pre data-lang="${lang}"><code class="language-js">${highlightJS(escapeHTML(code))}</code></pre>`;
     } else if (lang === 'html') {
-      return `<pre><code class="language-html">${highlightHTML(escapeHTML(code))}</code></pre>`;
+      return `<pre data-lang="${lang}"><code class="language-html">${highlightHTML(code)}</code></pre>`;
     } else if (lang === 'css') {
-      return `<pre><code class="language-css">${highlightCSS(escapeHTML(code))}</code></pre>`;
+      return `<pre data-lang="${lang}"><code class="language-css">${highlightCSS(escapeHTML(code))}</code></pre>`;
     } else {
-      return `<pre><code>${escapeHTML(code)}</code></pre>`;
+      return `<pre data-lang="${lang}"><code>${escapeHTML(code)}</code></pre>`;
     }
   };
 
@@ -184,13 +187,15 @@ function markdownToHTML(markdown) {
   const tagNamePattern = /^\/?([a-zA-Z][a-zA-Z0-9]*)/;
 
   function highlightHTML(code) {
-    const escaped = escapeHTML(code);
+    const comments = [];
 
-    const withComments = code.replace(htmlCommentPattern, (match) => {
-      return `<span class="token-comment">${match}</span>`
+    const withPlaceholders = code.replace(htmlCommentPattern, (match) => {
+      const token = `\u0000COMMENT${comments.length}\u0000`;
+      comments.push(`<span class="token-comment">${escapeHTML(match)}</span>`);
+      return token;
     });
 
-    return withComments.replace(tagPattern, (fullTag) => {
+    const withTags = withPlaceholders.replace(tagPattern, (fullTag) => {
       const inner = fullTag
         .replace(/^<\/?/, '')
         .replace(/\/?>$/, '');
@@ -201,7 +206,7 @@ function markdownToHTML(markdown) {
       const rest = inner.slice(nameMatch ? nameMatch[0].length : 0);
 
       const highlightedRest = rest.replace(attrPattern, (match, name, eq, value) => {
-        return `<span class="token-attr-name">${name}</span>${eq}<span class="token-attr-value">${value}</span>`;
+        return `<span class="token-attr-name">${escapeHTML(name)}</span>${eq}<span class="token-attr-value">${escapeHTML(value)}</span>`;
       });
 
       const isClosing = fullTag.startsWith('</');
@@ -209,7 +214,11 @@ function markdownToHTML(markdown) {
       const slash = isClosing ? '/' : '';
       const selfClose = isSelfClosing ? ' /' : '';
 
-      return `<span class="token-tag">&lt;${slash}${tagName}</span>${highlightedRest}<span class="token-tag">${selfClose}&gt;</span>`;
+      return `<span class="token-tag">&lt;${slash}${escapeHTML(tagName)}</span>${highlightedRest}<span class="token-tag">${selfClose}&gt;</span>`;
+    });
+
+    return withTags.replace(/\u0000COMMENT(\d+)\u0000/g, (match, index) => {
+      return comments[Number(index)];
     });
   }
 
@@ -350,7 +359,8 @@ function renderNav() {
 
   const categoryItems = groups.map(group => {
     const isExpanded = expandedCategories.has(group.category);
-    const icon = isExpanded ? '-' : '+';
+    // Chevron Right Icon
+    const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="nav-chevron"><path d="m9 18 6-6-6-6"/></svg>';
 
     const articleItems = group.articles.map(article => {
       const isCurrent = article.path === currentPath;
@@ -375,9 +385,9 @@ function renderNav() {
   const homeAttr = currentPath === '' ? ' aria-current="page"' : '';
 
   document.querySelector('.nav').innerHTML = `
-    <li><a class="nav-primary" href="/"${homeAttr}>Home</a></li>
-    <li><a class="nav-primary" href="/about">About</a></li>
-    <li class="nav-section-header">Articles</li>
+    <li><a class="nav-primary" href="/"${homeAttr}><svg xmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a></li>
+    <li><a class="nav-primary" href="/about"><svg xmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>About</a></li>
+    <li class="nav-section-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg>Articles</li>
     ${categoryItems}
   `;
 }
@@ -486,4 +496,10 @@ document.addEventListener('click', (e) => {
 
 window.addEventListener('popstate', () => {
   renderRoute(location.pathname);
+});
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (!localStorage.getItem('theme')) {
+    applyTheme();
+  }
 });
