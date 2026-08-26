@@ -40,14 +40,13 @@ let manifest = [];
 let currentPath = '';
 const expandedCategories = new Set();
 
-// Fetches articles/manifest.json which contains all the markdown paths minus the .md extension and the article title, then fetch and parse each markdown file to build the nav and breadcrumb.
+// Fetches articles/manifest.json which contains all the markdown paths minus the .md extension and the article title, then fetch and parse each markdown file to build the nav.
 // To add a new article, save a *.md file in the appropriate articles folder or sub-folder and add the pathname to manifest.json in the articles folder.
 const manifestReady = fetch('articles/manifest.json')
   .then(response => response.json())
   .then(articles => {
     manifest = articles;
     renderNav();
-    console.log(groupArticlesByCategory(manifest))
     const redirectPath = sessionStorage.getItem('redirectPath');
     if (redirectPath) {
       sessionStorage.removeItem('redirectPath');
@@ -310,18 +309,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-function deriveBreadcrumb(article) {
-  const segments = article.path.split('/');
-  const folderSegments = segments.slice(0, -1);
-
-  const folderCrumbs = folderSegments.map((segment, i) => ({
-    label: titleCaseSegment(segment),
-    href: folderSegments.slice(0, i + 1).join('/')
-  }));
-
-  return folderCrumbs;
-}
-
 function titleCaseSegment(segment) {
   return segment
     .split('-')
@@ -360,7 +347,7 @@ function renderNav() {
   const categoryItems = groups.map(group => {
     const isExpanded = expandedCategories.has(group.category);
     // Chevron Right Icon
-    const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="nav-chevron"><path d="m9 18 6-6-6-6"/></svg>';
+    const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="nav-chevron theme-icon"><path d="m9 18 6-6-6-6"/></svg>';
 
     const articleItems = group.articles.map(article => {
       const isCurrent = article.path === currentPath;
@@ -385,8 +372,8 @@ function renderNav() {
   const homeAttr = currentPath === '' ? ' aria-current="page"' : '';
 
   document.querySelector('.nav').innerHTML = `
-    <li><a class="nav-primary" href="/"${homeAttr}><svg xmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a></li>
-    <li><a class="nav-primary" href="/about"><svg xmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>About</a></li>
+    <li><a class="nav-primary" href="/"${homeAttr}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a></li>
+    <li><a class="nav-primary" href="/about"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>About</a></li>
     <li class="nav-section-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><path d="M15 18h-5"/><path d="M18 14h-8"/><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="10" y="6" rx="1"/></svg>Articles</li>
     ${categoryItems}
   `;
@@ -394,16 +381,6 @@ function renderNav() {
 
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
-}
-
-function renderBreadcrumbs(crumbs) {
-  if (crumbs.length === 0) return '';
-
-  const items = crumbs.map((crumb) => {
-    return `<li>${crumb.label}</li>`;
-  }).join('');
-
-  return `<nav aria-label="Breadcrumbs"><ol>${items}</ol></nav>`;
 }
 
 function normalizePath(path) {
@@ -432,7 +409,6 @@ async function renderRoute(path) {
   const normalizedPath = normalizePath(path);
 
   if (normalizedPath === '') {
-    document.getElementById('nav-location').innerHTML = '';
     document.getElementById('article-content').innerHTML = '';
     document.getElementById('home').hidden = false;
     currentPath = '';
@@ -445,9 +421,6 @@ async function renderRoute(path) {
   const article = manifest.find(e => e.path === normalizedPath);
 
   if (article !== undefined) {
-    const crumbs = deriveBreadcrumb(article);
-    const breadcrumbHTML = renderBreadcrumbs(crumbs);
-    document.getElementById('nav-location').innerHTML = breadcrumbHTML;
     document.getElementById('home').hidden = true;
     currentPath = normalizedPath;
     const [, categorySegment] = article.path.split('/');
@@ -457,14 +430,13 @@ async function renderRoute(path) {
     try {
       const loadedArticle = await loadArticle(article.path);
       const title = loadedArticle.frontmatter.title || article.title;
-      document.getElementById('article-content').innerHTML = `<h1>${title}</h1>` + loadedArticle.bodyHTML;
+      document.getElementById('article-content').innerHTML = `<h1 class="article-title">${title}</h1>` + loadedArticle.bodyHTML;
 
     } catch(err) {
       console.error('Could not load article:', err);
       document.getElementById('article-content').innerHTML = `<p>Uh oh, something happened when loading this article: ${normalizedPath}<br>Return <a href="/">home</a>?</p>`;
     }
   } else {
-    document.getElementById('nav-location').innerHTML = '';
     document.getElementById('article-content').innerHTML = `<p>Path not found: ${normalizedPath}<br>Return <a href="/">home</a>?</p>`;
     document.getElementById('home').hidden = true;
   }
