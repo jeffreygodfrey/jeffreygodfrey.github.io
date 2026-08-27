@@ -1,7 +1,8 @@
 ---
-title: This is a sample title because I don't know how to design an API.
-date: 2026-08-12
+title: API - Design Notes
+date: 2026-08-14
 tags: api
+excerpt: Maecenas diam tellus, maximus nec tincidunt ac, dapibus in nulla. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus
 ---
 Maecenas diam tellus, maximus nec tincidunt ac, dapibus in nulla. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse tincidunt vel arcu at laoreet. Sed auctor ornare diam, at sodales est commodo bibendum. Cras pulvinar elit ac tempus vehicula. Mauris lorem erat, consequat ac orci quis, dignissim molestie lectus. Aliquam pulvinar sodales nibh in ornare. Aliquam et blandit nisi. Donec dui metus, imperdiet sed odio eu, tristique dictum nunc. Donec dapibus sapien quis felis posuere vestibulum. Praesent nec magna vitae massa pellentesque maximus vel a elit. Pellentesque sit amet ex facilisis, rhoncus sapien a, rhoncus nibh.
 

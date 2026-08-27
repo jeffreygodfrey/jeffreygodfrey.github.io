@@ -1,5 +1,5 @@
 ---
-title: The basics of designing with CSS Grids.
+title: CSS - Grids Basics
 date: 2026-08-12
 tags: css, layout
 ---

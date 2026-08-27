@@ -1,14 +1,23 @@
 [
   {
     "path": "articles/tech/css-grid-basics",
-    "title": "CSS Grid Basics"
+    "title": "CSS - Grid Basics",
+    "date": "2026-08-12",
+    "tags": "css, layout",
+    "excerpt": "Phasellus cursus metus viverra leo dapibus, ac cursus mauris gravida. Donec porttitor, purus ut suscipit fringilla, diam lacus faucibus urna"
   },
   {
     "path": "articles/tech/api-design-notes",
-    "title": "API Design Notes"
+    "title": "API - Design Notes",
+    "date": "2026-08-14",
+    "tags": "api",
+    "excerpt": "Maecenas diam tellus, maximus nec tincidunt ac, dapibus in nulla. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus"
   },
   {
     "path": "articles/tech/css-relative-color-syntax",
-    "title": "How I build a website theme from a single chosen color."
+    "title": "CSS - How I build a website theme from a single chosen color.",
+    "date": "2026-08-06",
+    "tags": "css, colors",
+    "excerpt": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce lacinia sed velit et dignissim. Nam sagittis commodo massa, sit amet lacinia augue"
   }
 ]

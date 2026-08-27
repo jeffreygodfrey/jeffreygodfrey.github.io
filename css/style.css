@@ -254,8 +254,14 @@ header {
   background: var(--bg-article);
   font-weight: 600;
   text-transform: uppercase;
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+  border-image: linear-gradient(
+    to right,
+    var(--rule) 0%,
+    var(--rule) 75%,
+    transparent 100%
+  ) 1;
   display: flex;
   align-items: center;
   padding-left: 0.5rem;
@@ -367,6 +373,51 @@ main {
 
 [data-theme="light"] main {
   box-shadow: 0 4px 12px hsla(0, 0%, 0%, 0.12);
+}
+
+#home:not([hidden]) {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.article-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--rule);
+  border-radius: 0.5rem;
+}
+
+.article-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.card-link {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.article-card time {
+  font-family: var(--font-code);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.article-card p {
+  margin: 0;
+  color: var(--text-muted);
 }
 
 pre {

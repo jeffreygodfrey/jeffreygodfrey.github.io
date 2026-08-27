@@ -47,11 +47,14 @@ const manifestReady = fetch('articles/manifest.json')
   .then(articles => {
     manifest = articles;
     renderNav();
+
     const redirectPath = sessionStorage.getItem('redirectPath');
     if (redirectPath) {
       sessionStorage.removeItem('redirectPath');
       renderRoute(redirectPath);
       history.replaceState({}, '', redirectPath);
+    } else {
+      renderRoute(location.pathname);
     }
   })
   .catch(err => {
@@ -158,19 +161,44 @@ function markdownToHTML(markdown) {
     });
   }
 
-  const cssCommentPattern = '(\\/\\*[\\s\\S]*?\\*\\/)';
-  const cssStringPattern = '("(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\]|\\\\.)*\')';
+    const htmlTagNames = [
+    'html', 'body', 'head', 'header', 'main', 'nav', 'aside', 'footer',
+    'section', 'article', 'div', 'span', 'a', 'ul', 'li', 'ol',
+    'p', 'pre', 'code', 'button', 'select', 'option', 'label',
+    'selectedcontent'
+  ];
+
+  const mediaPattern = '(@media)';
+  const pseudoElementPattern = '(::[a-zA-Z-]+)';
+  const bracketParenPattern = '(\\[[^\\]]*\\]|\\([^)]*\\))';
+  const cssTagNamePattern = `((?<![.#])\\b(?:${htmlTagNames.join('|')})\\b)`;
+
+  const selectorTokenPattern = [mediaPattern, pseudoElementPattern, bracketParenPattern, cssTagNamePattern].join('|');
+  const selectorTokenRegex = new RegExp(selectorTokenPattern, 'g');
+
+  function highlightSelector(header) {
+    const inner = header.replace(selectorTokenRegex, (match, media, pseudo, bracket, tag) => {
+      if (media) return `<span class="token-keyword">${media}</span>`;
+      if (pseudo) return `<span class="token-function">${pseudo}</span>`;
+      if (bracket) return `<span class="token-string">${bracket}</span>`;
+      if (tag) return `<span class="token-tag">${tag}</span>`;
+      return match;
+    });
+
+    return `<span class="token-type">${inner}</span>`;
+  }
+
+  const cssStringPattern = '("(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')';
   const colorFunctionPattern = '((?:oklch|oklab|hsl|hsla|rgb|rgba|lab|lch|color)\\((?:[^()]|\\([^()]*\\))*\\))';
   const hexColorPattern = '(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8}))';
   const importantPattern = '(!important)';
   const cssNumberPattern = '(-?\\b\\d+\\.?\\d*(?:rem|em|ps|%|vh|vw|deg|s|ms)?\\b)';
 
-  const cssTokenPattern = [cssCommentPattern, cssStringPattern, colorFunctionPattern, hexColorPattern, importantPattern, cssNumberPattern].join('|');
-  const cssTokenRegex = new RegExp(cssTokenPattern, 'g');
+  const cssValueTokenPattern = [cssStringPattern, colorFunctionPattern, hexColorPattern, importantPattern, cssNumberPattern].join('|');
+  const cssValueTokenRegex = new RegExp(cssValueTokenPattern, 'g');
 
-  function highlightCSS(code) {
-    return code.replace(cssTokenRegex, (match, comment, string, colorFn, hex, important, number) => {
-      if (comment) return `<span class="token-comment">${comment}</span>`;
+  function highlightValue(value) {
+    return value.replace(cssValueTokenRegex, (match, string, colorFn, hex, important, number) => {
       if (string) return `<span class="token-string">${string}</span>`;
       if (colorFn) return `<span class="token-color"><span class="color-swatch" style="background-color: ${colorFn}"></span>${colorFn}</span>`;
       if (hex) return `<span class="token-color"><span class="color-swatch" style="background-color: ${hex}"></span>${hex}</span>`;
@@ -180,10 +208,64 @@ function markdownToHTML(markdown) {
     });
   }
 
+  const declarationPattern = /([ \t]*)([a-zA-Z-]+)(\s*:\s*)([^;]*)(;?)/g;
+
+  function highlightDeclarations(body) {
+    return body.replace(declarationPattern, (match, indent, property, colon, value, semicolon) => {
+      return `${indent}<span class="token-property">${property}</span>${colon}${highlightValue(value)}${semicolon}`;
+    });
+  }
+
+  function highlightBlocks(text) {
+    let result = '';
+    let i = 0;
+
+    while (i < text.length) {
+      const braceIndex = text.indexOf('{', i);
+
+      if (braceIndex === -1) {
+        result += text.slice(i);
+        break;
+      }
+
+      const header = text.slice(i, braceIndex);
+      result += highlightSelector(header) + '{';
+
+      let depth = 1;
+      let j = braceIndex + 1;
+      while (j < text.length && depth > 0) {
+        if (text[j] === '{') depth++;
+        else if (text[j] === '}') depth--;
+        j++;
+      }
+
+      const body = text.slice(braceIndex + 1, j - 1);
+      result += body.includes('{') ? highlightBlocks(body) : highlightDeclarations(body);
+      result += '}';
+
+      i = j;
+    }
+
+    return result;
+  }
+
+  function highlightCSS(code) {
+    const comments = [];
+    const withoutComments = code.replace(/\/\*[\s\S]*?\*\//g, (match) => {
+      const token = `\u0000COMMENT${comments.length}\u0000`;
+      comments.push(`<span class="token-comment">${match}</span>`);
+      return token;
+    });
+
+    const highlighted = highlightBlocks(withoutComments);
+
+    return highlighted.replace(/\u0000COMMENT(\d+)\u0000/g, (match, index) => comments[Number(index)]);
+  }
+
   const htmlCommentPattern = /<!--[\s\S]*?-->/g;
   const tagPattern = /<\/?[a-zA-Z][^>]*>/g;
   const attrPattern = /([a-zA-Z-]+)(=)("[^"]*"|'[^']*')/g;
-  const tagNamePattern = /^\/?([a-zA-Z][a-zA-Z0-9]*)/;
+  const htmlTagNamePattern = /^\/?([a-zA-Z][a-zA-Z0-9]*)/;
 
   function highlightHTML(code) {
     const comments = [];
@@ -199,7 +281,7 @@ function markdownToHTML(markdown) {
         .replace(/^<\/?/, '')
         .replace(/\/?>$/, '');
 
-      const nameMatch = inner.match(tagNamePattern);
+      const nameMatch = inner.match(htmlTagNamePattern);
       const tagName = nameMatch ? nameMatch[1] : '';
 
       const rest = inner.slice(nameMatch ? nameMatch[0].length : 0);
@@ -379,6 +461,30 @@ function renderNav() {
   `;
 }
 
+function formatDate(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date);
+}
+
+function renderHome() {
+  const sorted = [...manifest].sort((a, b) => b.date.localeCompare(a.date));
+
+  const cards = sorted.map(article => `
+    <article class="article-card">
+      <h2><a class="card-link" href="/${article.path}">${article.title}</a></h2>
+      <time datetime="${article.date}">${formatDate(article.date)}</time>
+      <p>${article.excerpt}</p>
+      <!-- <ul class="article-card-tags"><li><a href="#">tag</a></li></ul> -->
+    </article>
+  `).join('');
+
+  document.getElementById('home').innerHTML = cards;
+}
+
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
@@ -414,6 +520,7 @@ async function renderRoute(path) {
     currentPath = '';
     expandedCategories.clear();
     renderNav();
+    renderHome();
 
     return;
   }
