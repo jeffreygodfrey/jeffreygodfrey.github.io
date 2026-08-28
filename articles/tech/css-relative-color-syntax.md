@@ -3,6 +3,7 @@ title: CSS - How I build a website theme from a single chosen color.
 date: 2026-08-06
 tags: css, colors
 ---
+
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce lacinia sed velit et dignissim. Nam sagittis commodo massa, sit amet lacinia augue condimentum vel. Sed vel bibendum orci. Pellentesque non facilisis augue. Mauris maximus lobortis nulla quis pellentesque. Fusce ultrices ante nec justo pretium, sed egestas mauris faucibus. Suspendisse mollis arcu ut mauris pellentesque venenatis. Vestibulum magna urna, ullamcorper sed dui nec, posuere efficitur diam. Aliquam dictum turpis nec urna varius rhoncus. Vivamus vitae ligula a diam mattis rhoncus. Etiam porttitor eget tortor ac blandit. Fusce vestibulum tempus diam ac placerat. Cras a purus ipsum. Mauris vitae tellus ac odio auctor pharetra id non lectus. Nulla condimentum sapien at dui pulvinar luctus.
 
 Donec dapibus neque id diam bibendum ultrices. Ut id mauris mollis, vulputate nulla vel, finibus lorem. Aenean eu tincidunt eros. Phasellus porta vulputate laoreet. Fusce vel augue pulvinar, cursus elit eget, sagittis libero. Quisque ut egestas diam. Curabitur ut commodo ante, non posuere mauris. Integer a sem auctor, malesuada tellus eu, tincidunt tellus. Sed posuere risus purus, at hendrerit nibh sollicitudin a. Nullam justo nisi, condimentum ac ornare eget, elementum eget ipsum.

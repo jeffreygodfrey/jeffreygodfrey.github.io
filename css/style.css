@@ -481,7 +481,31 @@ pre code {
 }
 
 .token-color {
-  color: var(--code-color);
+  color: var(--code-constant);
+}
+
+.token-type {
+  color: var(--code-type);
+}
+
+.token-property {
+  color: var(--code-property);
+}
+
+.token-function {
+  color: var(--code-function);
+}
+
+.token-variable {
+  color: var(--code-variable);
+}
+
+.token-constant {
+  color: var(--code-constant);
+}
+
+.token-operator {
+  color: var(--code-operator);
 }
 
 @media (min-width: 768px) {

@@ -19,5 +19,12 @@
     "date": "2026-08-06",
     "tags": "css, colors",
     "excerpt": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce lacinia sed velit et dignissim. Nam sagittis commodo massa, sit amet lacinia augue"
+  },
+  {
+    "path": "articles/life/quit-smoking",
+    "title": "I quit smoking",
+    "date": "2010-02-18",
+    "tags": "life",
+    "excerpt": "It was just starting to break up as I was pulling into the parking lot at school. This was not the 20-30 minutes as described on the package"
   }
 ]

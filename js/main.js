@@ -137,41 +137,96 @@ function markdownToHTML(markdown) {
               .replace(/>/g, '&gt;')
   };
 
+  const jsCommentPattern = '(\\/\\/.*|\\/\\*[\\s\\S]*?\\*\\/)';
+  const jsStringPattern = '("(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')';
   const jsKeywords = [
     'const', 'let', 'var', 'function', 'return', 'if', 'else',
     'for', 'while', 'class', 'new', 'this', 'import', 'export',
     'default', 'from', 'typeof', 'null', 'undefined', 'true', 'false'
   ];
-
-  const jsCommentPattern = '(\\/\\/.*|\\/\\*[\\s\\S]*?\\*\\/)';
-  const jsStringPattern = '("(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')';
   const jsKeywordPattern = `(\\b(?:${jsKeywords.join('|')})\\b)`;
   const jsNumberPattern = '(\\b\\d+\\.?\\d*\\b)';
+  const jsOperatorPattern = '(===|!==|==|!=|=>|&&|\\|\\||[+\\-*/%=<>!])';
+  const jsFunctionCallPattern = '(\\b[a-zA-Z_$][a-zA-Z0-9_$]*)(?=\\s*\\()';
+  const jsIdentifierPattern = '(\\b[a-zA-Z_$][a-zA-Z0-9_$]*\\b)';
 
-  const jsTokenPattern = [jsCommentPattern, jsStringPattern, jsKeywordPattern, jsNumberPattern].join('|');
+  function maskCommentsAndStrings(code) {
+    const comments = [];
+    const strings = [];
+
+    let masked = code.replace(new RegExp(jsCommentPattern, 'g'), (match) => {
+      const token = `\u0000COMMENT${comments.length}\u0000`;
+      comments.push(`<span class="token-comment">${match}</span>`);
+      return token;
+    });
+
+    masked = masked.replace(new RegExp(jsStringPattern, 'g'), (match) => {
+      const token = `\u0000STRING${strings.length}\u0000`;
+      strings.push(`<span class="token-string">${match}</span>`);
+      return token;
+    });
+
+    return { masked, comments, strings };
+  }
+
+  function scanJSDeclarations(masked) {
+    const map = {};
+    let m;
+
+    const classPattern = /\bclass\s+([a-zA-Z_$][\w$]*)/g;
+    while ((m = classPattern.exec(masked)) !== null) map[m[1]] = 'type';
+
+    const functionPattern = /\bfunction\s+([a-zA-Z_$][\w$]*)\s*\(/g;
+    while ((m = functionPattern.exec(masked)) !== null) map[m[1]] = 'function';
+
+    const declPattern = /\b(const|let|var)\s+([a-zA-Z_$][\w$]*)/g;
+    while ((m = declPattern.exec(masked)) !== null) {
+      map[m[2]] = m[1] === 'const' ? 'constant' : 'variable';
+    }
+
+    // Overrides plain `const` classification above when the value is a function
+    const constFunctionPattern = /\bconst\s+([a-zA-Z_$][\w$]*)\s*=\s*(?:\([^)]*\)\s*=>|function\b)/g;
+    while ((m = constFunctionPattern.exec(masked)) !== null) map[m[1]] = 'function';
+
+    return map;
+  }
+
+  const jsTokenPattern = [jsKeywordPattern, jsOperatorPattern, jsNumberPattern, jsFunctionCallPattern, jsIdentifierPattern].join('|');
   const jsTokenRegex = new RegExp(jsTokenPattern, 'g');
 
   function highlightJS(code) {
-    return code.replace(jsTokenRegex, (match, comment, string, keyword, number) => {
-      if (comment) return `<span class="token-comment">${comment}</span>`;
-      if (string) return `<span class="token-string">${string}</span>`;
+    const { masked, comments, strings } = maskCommentsAndStrings(code);
+    const declarationMap = scanJSDeclarations(masked);
+
+    let highlighted = masked.replace(jsTokenRegex, (match, keyword, operator, number, funcCall, identifier) => {
       if (keyword) return `<span class="token-keyword">${keyword}</span>`;
+      if (operator) return `<span class="token-operator">${operator}</span>`;
       if (number) return `<span class="token-number">${number}</span>`;
+      if (funcCall) return `<span class="token-function">${funcCall}</span>`;
+      if (identifier) {
+        const category = declarationMap[identifier];
+        return category ? `<span class="token-${category}">${identifier}</span>` : identifier;
+      }
       return match;
     });
+
+    highlighted = highlighted.replace(/\u0000STRING(\d+)\u0000/g, (m, i) => strings[Number(i)]);
+    highlighted = highlighted.replace(/\u0000COMMENT(\d+)\u0000/g, (m, i) => comments[Number(i)]);
+
+    return highlighted;
   }
 
-    const htmlTagNames = [
-    'html', 'body', 'head', 'header', 'main', 'nav', 'aside', 'footer',
-    'section', 'article', 'div', 'span', 'a', 'ul', 'li', 'ol',
-    'p', 'pre', 'code', 'button', 'select', 'option', 'label',
-    'selectedcontent'
+  const htmlTagNames = [
+  'html', 'body', 'head', 'header', 'main', 'nav', 'aside', 'footer',
+  'section', 'article', 'div', 'span', 'a', 'ul', 'li', 'ol',
+  'p', 'pre', 'code', 'button', 'select', 'option', 'label',
+  'selectedcontent'
   ];
 
   const mediaPattern = '(@media)';
   const pseudoElementPattern = '(::[a-zA-Z-]+)';
   const bracketParenPattern = '(\\[[^\\]]*\\]|\\([^)]*\\))';
-  const cssTagNamePattern = `((?<![.#])\\b(?:${htmlTagNames.join('|')})\\b)`;
+  const cssTagNamePattern = `((?<![.#a-zA-Z0-9-])(?:${htmlTagNames.join('|')})(?![a-zA-Z0-9-]))`;
 
   const selectorTokenPattern = [mediaPattern, pseudoElementPattern, bracketParenPattern, cssTagNamePattern].join('|');
   const selectorTokenRegex = new RegExp(selectorTokenPattern, 'g');
@@ -190,7 +245,7 @@ function markdownToHTML(markdown) {
 
   const cssStringPattern = '("(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')';
   const colorFunctionPattern = '((?:oklch|oklab|hsl|hsla|rgb|rgba|lab|lch|color)\\((?:[^()]|\\([^()]*\\))*\\))';
-  const hexColorPattern = '(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8}))';
+  const hexColorPattern = '(#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3}))';
   const importantPattern = '(!important)';
   const cssNumberPattern = '(-?\\b\\d+\\.?\\d*(?:rem|em|ps|%|vh|vw|deg|s|ms)?\\b)';
 

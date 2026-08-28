@@ -3,6 +3,7 @@ title: CSS - Grids Basics
 date: 2026-08-12
 tags: css, layout
 ---
+
 Phasellus cursus metus viverra leo dapibus, ac cursus mauris gravida. Donec porttitor, purus ut suscipit fringilla, diam lacus faucibus urna, a lobortis sem massa nec nunc. Cras vel sapien ac orci posuere maximus at vel sapien. Cras sem lorem, malesuada a orci nec, cursus sagittis odio. Vestibulum at placerat felis, sed feugiat neque. Etiam quis finibus tortor. Duis sed sem viverra, eleifend odio vitae, aliquet arcu. Donec posuere ultrices auctor.
 
 Donec scelerisque tincidunt nisl, vel laoreet velit sodales ut. Nam sed nisl enim. Donec tincidunt pharetra dolor, at tristique mauris vulputate vel. Vestibulum erat arcu, dignissim vel hendrerit eu, molestie id magna. Donec dignissim ex turpis, at consequat eros aliquet at. Pellentesque malesuada leo quis arcu fringilla, nec condimentum nisl auctor. Nunc libero est, sollicitudin non dictum ut, interdum faucibus leo. Sed lorem leo, rutrum nec laoreet vitae, molestie at mauris. Vivamus porttitor rhoncus nisi, ut vehicula quam pharetra in.
