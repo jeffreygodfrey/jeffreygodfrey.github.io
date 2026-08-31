@@ -15,10 +15,10 @@
   },
   {
     "path": "articles/tech/css-relative-color-syntax",
-    "title": "CSS - How I build a website theme from a single chosen color.",
+    "title": "CSS - I built a theme from a single color.",
     "date": "2026-08-06",
     "tags": "css, colors",
-    "excerpt": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce lacinia sed velit et dignissim. Nam sagittis commodo massa, sit amet lacinia augue"
+    "excerpt": "This allows me to define recognizable colors and calculate accurately what the derivation will be while preserving saturation and lightness between hues."
   },
   {
     "path": "articles/life/quit-smoking",

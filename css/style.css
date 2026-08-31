@@ -14,7 +14,7 @@
   --rule-L:          60%;
   --bg-code-L:       25%;
   --bg-article-L:    22%;
-  --bg-sidebar-L: 18%;
+  --bg-sidebar-L:    18%;
   --bg-header-L:     17%;
   --bg-L:            15%;
 
@@ -28,7 +28,7 @@
   --rule:            oklch(from var(--base) var(--rule-L)          calc(c * 0.8) h);
   --bg-code:         oklch(from var(--base) var(--bg-code-L)       calc(c * 0.05) h);
   --bg-article:      oklch(from var(--base) var(--bg-article-L)    calc(c * 0.05) h);
-  --bg-sidebar:   oklch(from var(--base) var(--bg-sidebar-L) calc(c * 0.05) h);
+  --bg-sidebar:      oklch(from var(--base) var(--bg-sidebar-L) calc(c * 0.05) h);
   --bg-header:       oklch(from var(--base) var(--bg-header-L)     calc(c * 0.05) h);
   --bg:              oklch(from var(--base) var(--bg-L)            calc(c * 0.05) h);
 
@@ -57,7 +57,7 @@
   --rule-L:          75%;
   --bg-code-L:       94%;
   --bg-article-L:    97%;
-  --bg-sidebar-L: 91%;
+  --bg-sidebar-L:    91%;
   --bg-header-L:     89%;
   --bg-L:            86%;
 
@@ -303,12 +303,20 @@ header {
 
 }
 
+h1.article-title {
+  font-size: 3rem;
+  margin: 0;
+  margin-bottom: 2rem;
+  line-height: 3rem;
+  border-bottom: 1px solid var(--rule);
+}
+
 .article-content {
   padding: 1rem 2rem;
 }
 
-.article-title {
-  margin: 0;
+h1 {
+  font-size: 2rem;
 }
 
 .theme-switch {
@@ -482,6 +490,16 @@ pre code {
 
 .token-color {
   color: var(--code-constant);
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  vertical-align: middle;
+  margin-right: 0.3em;
 }
 
 .token-type {

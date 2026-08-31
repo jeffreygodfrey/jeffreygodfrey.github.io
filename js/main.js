@@ -247,7 +247,7 @@ function markdownToHTML(markdown) {
   const colorFunctionPattern = '((?:oklch|oklab|hsl|hsla|rgb|rgba|lab|lch|color)\\((?:[^()]|\\([^()]*\\))*\\))';
   const hexColorPattern = '(#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3}))';
   const importantPattern = '(!important)';
-  const cssNumberPattern = '(-?\\b\\d+\\.?\\d*(?:rem|em|ps|%|vh|vw|deg|s|ms)?\\b)';
+  const cssNumberPattern = '(-?\\b\\d+\\.?\\d*(?:rem|em|ps|%|vh|vw|deg|s|ms)?(?![a-zA-Z0-9_]))';
 
   const cssValueTokenPattern = [cssStringPattern, colorFunctionPattern, hexColorPattern, importantPattern, cssNumberPattern].join('|');
   const cssValueTokenRegex = new RegExp(cssValueTokenPattern, 'g');
@@ -263,7 +263,7 @@ function markdownToHTML(markdown) {
     });
   }
 
-  const declarationPattern = /([ \t]*)([a-zA-Z-]+)(\s*:\s*)([^;]*)(;?)/g;
+  const declarationPattern = /([ \t]*)([a-zA-Z0-9-]+)(\s*:\s*)([^;]*)(;?)/g;
 
   function highlightDeclarations(body) {
     return body.replace(declarationPattern, (match, indent, property, colon, value, semicolon) => {
@@ -371,6 +371,7 @@ function markdownToHTML(markdown) {
 
   const result = paragraphs.map(p => {
     const HTML = p
+      .replace(/^#\s+(.+)$/gm, '<h1>$1</h1>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
@@ -576,6 +577,20 @@ async function renderRoute(path) {
     expandedCategories.clear();
     renderNav();
     renderHome();
+
+    return;
+  } else if (normalizedPath === 'about') {
+    document.getElementById('home').hidden = true;
+    currentPath = 'about';
+    renderNav();
+
+    try {
+      const loadedArticle = await loadArticle('about');
+      document.getElementById('article-content').innerHTML = `<h1 class="article-title">${loadedArticle.frontmatter.title || 'About'}</h1>` + loadedArticle.bodyHTML;
+    } catch (err) {
+      console.error('Could not load about page:', err);
+      document.getElementById('article-content').innerHTML = `<p>Uh oh, something happened loading this page. <br>Return <a href="/">home</a>?</p>`;
+    }
 
     return;
   }

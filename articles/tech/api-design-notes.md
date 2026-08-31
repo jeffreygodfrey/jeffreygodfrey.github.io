@@ -8,29 +8,35 @@ excerpt: Maecenas diam tellus, maximus nec tincidunt ac, dapibus in nulla. Orci 
 Maecenas diam tellus, maximus nec tincidunt ac, dapibus in nulla. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse tincidunt vel arcu at laoreet. Sed auctor ornare diam, at sodales est commodo bibendum. Cras pulvinar elit ac tempus vehicula. Mauris lorem erat, consequat ac orci quis, dignissim molestie lectus. Aliquam pulvinar sodales nibh in ornare. Aliquam et blandit nisi. Donec dui metus, imperdiet sed odio eu, tristique dictum nunc. Donec dapibus sapien quis felis posuere vestibulum. Praesent nec magna vitae massa pellentesque maximus vel a elit. Pellentesque sit amet ex facilisis, rhoncus sapien a, rhoncus nibh.
 
 ```js
-// sums an array of numbers
-function sum(nums) {
-  let total = 0;
-  for (const n of nums) {
-    total = total + n; // running total
-  }
-  return total;
-}
-
-const result = sum([1, 2, 3.5]);
+const articleItems = group.articles.map(article => {
+  const isCurrent = article.path === currentPath;
+  const currentAttr = isCurrent ? ' aria-current="page"' : '';
+  return `<li><a href="/${article.path}"${currentAttr}>${article.title}</a></li>`;
+}).join('');
 ```
 
 Donec a eros sem. Aenean ac interdum leo, varius aliquam ipsum. Morbi rutrum lacus fermentum orci auctor, viverra pretium augue venenatis. Sed eget nisl cursus tortor feugiat viverra. Ut at iaculis odio. Nulla ut dui nec nisi scelerisque elementum quis at felis. Curabitur sagittis tortor gravida leo egestas maximus. Mauris ullamcorper in arcu sit amet luctus. Praesent nulla risus, viverra sed facilisis vel, congue non libero.
 
 ```css
-/* card background */
-.card {
-  content: "hello";
-  background: oklch(from var(--accent) l c h);
-  border-color: hsl(210, 50%, 40%);
-  color: #ff6600;
-  padding: 1.5rem !important;
-  margin: -10px;
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 50;
+
+  background: linear-gradient(
+    to bottom,
+    var(--bg-header) 0px,
+    var(--bg-header) var(--page-header-height),
+    transparent calc(
+      var(--page-header-height) +
+      var(--header-gradient-fade)
+    )
+  );
+  z-index: 20
 }
 ```
 
