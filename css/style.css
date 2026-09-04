@@ -1,7 +1,7 @@
 :root {
   color-scheme: dark;
   --sidebar: 11rem;
-  --page-header-height: 4.5rem;
+  --page-header-height: 5rem;
   --header-gradient-fade: 0.25rem;
   --font-body: "Noto Sans", sans-serif;
   --font-code: "Noto Sans Mono", monospace;
@@ -89,7 +89,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
-  font-size: clamp(1.05rem, 2vw, 1.2rem);
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
   font-weight: 400;
   line-height: 1.8;
   min-height: 100vh;
@@ -98,6 +98,9 @@ body {
 
 header {
   top: 0;
+  display: flex;
+  align-items: center;
+  height: var(--page-header-height);
 }
 
 .page-top {
@@ -125,10 +128,12 @@ header {
 }
 
 .logo {
-  font-size: 1.8rem;
-  font-weight: 600;
   color: var(--text);
-  padding-bottom: 0.3rem;
+  height: var(--page-header-height);
+  width: var(--page-header-height);
+  stroke: currentColor;
+  stroke-width: 10;
+  z-index: 100;
 }
 
 .site-title {
@@ -170,7 +175,7 @@ header {
 }
 
 #site-nav a:hover {
-  color: var(--accent2);
+  color: var(--accent1);
 }
 
 #site-nav .nav-articles {
@@ -194,7 +199,7 @@ header {
 }
 
 #site-nav a[aria-current="page"] {
-  color: var(--accent1);
+  color: var(--accent2);
 }
 
 [data-nav-open="true"] #site-nav {
@@ -204,6 +209,7 @@ header {
 #nav-toggle {
   top: 0;
   left: 1rem;
+  margin-left: 0.5rem;
   padding: 1rem;
   font-size: 1rem;
   height: var(--page-header-height);
@@ -283,7 +289,7 @@ header {
 }
 
 .nav-category:hover {
-  color: var(--accent2);
+  color: var(--accent1);
 }
 
 .nav-chevron {
@@ -304,7 +310,7 @@ header {
 }
 
 h1.article-title {
-  font-size: 3rem;
+  font-size: 2rem;
   margin: 0;
   margin-bottom: 2rem;
   line-height: 3rem;
@@ -312,11 +318,11 @@ h1.article-title {
 }
 
 .article-content {
-  padding: 1rem 2rem;
+  padding: 0;
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
 }
 
 .theme-switch {
@@ -342,7 +348,7 @@ h1 {
 }
 
 .theme-select option:hover {
-  color: var(--accent2);
+  color: var(--accent1);
 }
 
 .theme-select button {
@@ -374,7 +380,7 @@ main {
   background: var(--bg-article);
   border: 1px solid var(--rule);
   border-radius: 0.5rem;
-  padding: 1rem;
+  padding: 1.5rem;
   overflow-x: auto;
   margin: 1.5rem;
 }
@@ -400,20 +406,19 @@ main {
   border-radius: 0.5rem;
 }
 
+[data-theme="light"] .article-card:hover {
+  background: var(--bg-code);
+  box-shadow: 0 4px 12px hsla(0, 0%, 0%, 0.12);
+}
+
+.article-card:hover {
+  background: var(--bg-code);
+  box-shadow: 0 0 16px oklch(from var(--base) l c h / 0.25);
+}
+
 .article-card h2 {
   margin: 0;
   font-size: 1.1rem;
-}
-
-.card-link {
-  color: var(--text);
-  text-decoration: none;
-}
-
-.card-link::after {
-  content: "";
-  position: absolute;
-  inset: 0;
 }
 
 .article-card time {
@@ -426,6 +431,17 @@ main {
 .article-card p {
   margin: 0;
   color: var(--text-muted);
+}
+
+.card-link {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
 }
 
 pre {
@@ -532,7 +548,7 @@ pre code {
     grid-template-columns: var(--sidebar) 1fr var(--sidebar);
     grid-template-rows: var(--page-header-height) 1fr;
     grid-template-areas:
-      "logo header header"
+      "header header header"
       "nav    main   aside";
     min-height: 100vh;
   }
@@ -567,14 +583,6 @@ pre code {
 
   .page-top::after {
     content: none;
-  }
-
-  .logo {
-    grid-area: logo;
-    position: sticky;
-    top: 0;
-    align-self: start;
-    z-index: 50;
   }
 
   header {

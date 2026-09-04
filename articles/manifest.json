@@ -7,13 +7,6 @@
     "excerpt": "Phasellus cursus metus viverra leo dapibus, ac cursus mauris gravida. Donec porttitor, purus ut suscipit fringilla, diam lacus faucibus urna"
   },
   {
-    "path": "articles/tech/api-design-notes",
-    "title": "API - Design Notes",
-    "date": "2026-08-14",
-    "tags": "api",
-    "excerpt": "Maecenas diam tellus, maximus nec tincidunt ac, dapibus in nulla. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus"
-  },
-  {
     "path": "articles/tech/css-relative-color-syntax",
     "title": "CSS - I built a theme from a single color.",
     "date": "2026-08-06",
